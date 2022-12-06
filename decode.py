@@ -1,3 +1,5 @@
+from conversion import *
+
 def decode(instruction):
     decodedInst = {}
     rs1 = None
@@ -81,9 +83,17 @@ def decode(instruction):
 
     elif instruction[-7:] == "0100011":  # store
         rs1 = instruction[-20:-15]
-        imm = "".join((instruction[-12:-7], instruction[-32:-25]))
+        imm = "".join((instruction[-32:-25], instruction[-12:-7]))
         rs2 = instruction[-25:-20]
         decodedInst["type"] = "sw"
+    
+    elif instruction[-7:] == "1101111":  # JAL
+        imm = "".join((instruction[-32], instruction[-20:-12], instruction[-21],instruction[-31:-21] ))
+        rd = instruction[-12:-7]
+        decodedInst["type"] = "jal"
+    
+    else:
+        return None
 
     decodedInst["rs1"] = rs1
     decodedInst["rs2"] = rs2

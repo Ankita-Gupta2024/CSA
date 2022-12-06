@@ -1,7 +1,7 @@
 def decimalToBinary(n):
     # converting decimal to binary
     # and removing the prefix(0b)
-    return "{:032b}".format(x)
+    return "{:032b}".format(n)
 
 def binaryToDecimal(n):
     return int(n,2)

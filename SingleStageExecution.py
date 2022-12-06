@@ -100,28 +100,43 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
         address = register.readRF(rs1)
         address = address + imm
         dataMem.writeDataMem(address,data)
-    
+
     elif(dInst['type'] == 'beq'):
         rs1 = binaryToDecimal(dInst['rs1'])
         imm = binaryToDecimal(dInst['imm'])
         rs2 = binaryToDecimal(dInst['rs2'])
-        data1 = register.readRF(rs2)
+        data1 = register.readRF(rs1)
         data2 = register.readRF(rs2)
+        print(data1,data2)
         result = abs(data1-data2)
         if result==0:
             take_Branch = True
-            PC = PC + imm
+            PC.IF["PC"] += imm
+    
+    elif(dInst['type'] == 'jal'):
+        imm = binaryToDecimal(dInst['imm'])
+        rd = binaryToDecimal(dInst['rd'])
+        register.writeRF(rd, PC.IF["PC"]+4)
+        take_Branch = True
+        PC.IF["PC"] += imm << 1
     
     elif(dInst['type'] == 'bne'):
         rs1 = binaryToDecimal(dInst['rs1'])
         imm = binaryToDecimal(dInst['imm'])
         rs2 = binaryToDecimal(dInst['rs2'])
-        data1 = register.readRF(rs2)
+        data1 = register.readRF(rs1)
         data2 = register.readRF(rs2)
         result = abs(data1-data2)
+        print("imm = "+ str(imm))
+        print("purana PC is = "+ str(PC.IF["PC"]))
+        print(data1,data2)
+        print(result)
         if result!=0:
             take_Branch = True
-            PC = PC + imm
+            PC.IF["PC"] += imm
+    
+    if not take_Branch:
+        PC.IF["PC"] += 4
 
     
     

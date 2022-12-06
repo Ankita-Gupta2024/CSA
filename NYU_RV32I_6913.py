@@ -26,6 +26,7 @@ class DataMem(object):
         self.ioDir = ioDir
         with open(ioDir + "\\dmem.txt") as dm:
             self.DMem = [data.replace("\n", "") for data in dm.readlines()]
+            self.DMem.extend(["00000000"]*(1000-len(self.DMem)))
         
 
     def readDataMem(self, ReadAddress):
@@ -55,7 +56,8 @@ class RegisterFile(object):
         return self.Registers[Reg_addr]
     
     def writeRF(self, Reg_addr, Wrt_reg_data):
-        self.Registers[Reg_addr] = Wrt_reg_data
+        print(Wrt_reg_data)
+        self.Registers[Reg_addr] = (Wrt_reg_data) 
          
     def outputRF(self, cycle):
         op = ["-"*70+"\n", "State of RF after executing cycle:" + str(cycle) + "\n"]
@@ -94,10 +96,14 @@ class SingleStageCore(Core):
 
     def step(self):
         # Your implementation
+        print("PC = "+str(self.state.IF["PC"]) )
         instr = imem.readInstr(self.state.IF["PC"])
         decodedInst = decode(instr) #dict of all operands
-        PerformOperation(decodedInst,self.myRF,self.ext_dmem,self.takeBranch,self.state.IF["PC"])
-        self.halted = True
+        if decodedInst is None: 
+            self.halted = True
+        else: 
+            PerformOperation(decodedInst,self.myRF,self.ext_dmem,self.takeBranch,self.state)
+
         if self.state.IF["nop"]:
             self.halted = True
             
@@ -106,8 +112,9 @@ class SingleStageCore(Core):
             
         self.state = self.nextState #The end of the cycle and updates the current state with the values calculated in this cycle
         self.cycle += 1
-        if not self.takeBranch:
-            self.state.IF["PC"] += 4
+        # if not self.takeBranch:
+        #     print("andar wala run hua")
+        #     self.state.IF["PC"] += 4
 
     def printState(self, state, cycle):
         printstate = ["-"*70+"\n", "State after executing cycle: " + str(cycle) + "\n"]
@@ -183,18 +190,19 @@ if __name__ == "__main__":
 
     
     ssCore = SingleStageCore(ioDir, imem, dmem_ss)
-    fsCore = FiveStageCore(ioDir, imem, dmem_fs)
+    # fsCore = FiveStageCore(ioDir, imem, dmem_fs)
 
     while(True):
         if not ssCore.halted:
-            print("ek hi instruction run kyu ho raha hai bc")
             ssCore.step()
         
-        if not fsCore.halted:
-            fsCore.step()
+        # if not fsCore.halted:
+        #     fsCore.step()
 
-        if ssCore.halted and fsCore.halted:
+        if ssCore.halted:
             break
+        # if ssCore.halted and fsCore.halted:
+        #     break
     
     # dump SS and FS data mem.
     dmem_ss.outputDataMem()
