@@ -1,8 +1,10 @@
 import os
 import argparse
-from decode import decode
+from SingleStageDecode import decode
 from conversion import *
 from SingleStageExecution import PerformOperation
+from FiveStageDecode import *
+from FiveStageExecution import *
 
 MemSize = 1000 # memory size, in reality, the memory size should be 2^32, but for this lab, for the space resaon, we keep it as this large number, but the memory is still 32-bit addressable.
 
@@ -134,22 +136,24 @@ class FiveStageCore(Core):
     def step(self):
         # Your implementation
         # --------------------- WB stage ---------------------
+        WB(self.state)
         
         
         
         # --------------------- MEM stage --------------------
-        
+        Mem(self.state)
         
         
         # --------------------- EX stage ---------------------
-        
+        EX(self.state)
         
         
         # --------------------- ID stage ---------------------
-        
+        ID(self.state)
         
         
         # --------------------- IF stage ---------------------
+        IF(self.state)
         
         self.halted = True
         if self.state.IF["nop"] and self.state.ID["nop"] and self.state.EX["nop"] and self.state.MEM["nop"] and self.state.WB["nop"]:
@@ -190,19 +194,17 @@ if __name__ == "__main__":
 
     
     ssCore = SingleStageCore(ioDir, imem, dmem_ss)
-    # fsCore = FiveStageCore(ioDir, imem, dmem_fs)
+    fsCore = FiveStageCore(ioDir, imem, dmem_fs)
 
     while(True):
         if not ssCore.halted:
             ssCore.step()
         
-        # if not fsCore.halted:
-        #     fsCore.step()
+        if not fsCore.halted:
+            fsCore.step()
 
-        if ssCore.halted:
+        if ssCore.halted and fsCore.halted:
             break
-        # if ssCore.halted and fsCore.halted:
-        #     break
     
     # dump SS and FS data mem.
     dmem_ss.outputDataMem()
