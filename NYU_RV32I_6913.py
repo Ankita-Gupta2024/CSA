@@ -72,12 +72,12 @@ class RegisterFile(object):
 class State(object):
     def __init__(self):
         self.IF = {"nop": False, "PC": 0}
-        self.ID = {"nop": False, "Instr": 0}
-        self.EX = {"nop": False, "Read_data1": 0, "Read_data2": 0, "Imm": 0, "Rs": 0, "Rt": 0, "Wrt_reg_addr": 0, "is_I_type": False, "rd_mem": 0, 
+        self.ID = {"nop": True, "Instr": 0}
+        self.EX = {"nop": True, "Read_data1": 0, "Read_data2": 0, "Imm": 0, "Rs": 0, "Rt": 0, "Wrt_reg_addr": 0, "is_I_type": False, "rd_mem": 0, 
                    "wrt_mem": 0, "alu_op": 0, "wrt_enable": 0}
-        self.MEM = {"nop": False, "ALUresult": 0, "Store_data": 0, "Rs": 0, "Rt": 0, "Wrt_reg_addr": 0, "rd_mem": 0, 
+        self.MEM = {"nop": True, "ALUresult": 0, "Store_data": 0, "Rs": 0, "Rt": 0, "Wrt_reg_addr": 0, "rd_mem": 0, 
                    "wrt_mem": 0, "wrt_enable": 0}
-        self.WB = {"nop": False, "Wrt_data": 0, "Rs": 0, "Rt": 0, "Wrt_reg_addr": 0, "wrt_enable": 0}
+        self.WB = {"nop": True, "Wrt_data": 0, "Rs": 0, "Rt": 0, "Wrt_reg_addr": 0, "wrt_enable": 0}
 
 class Core(object):
     def __init__(self, ioDir, imem, dmem):
@@ -136,24 +136,31 @@ class FiveStageCore(Core):
     def step(self):
         # Your implementation
         # --------------------- WB stage ---------------------
-        WB(self.state)
+        if not self.state.WB["nop"]:
+            WB(self.state, self.myRF)
         
         
         
         # --------------------- MEM stage --------------------
-        Mem(self.state)
+        if not self.state.MEM["nop"]:
+            Mem(self.state, self.ext_dmem)
         
         
         # --------------------- EX stage ---------------------
-        EX(self.state)
+        if not self.state.EX["nop"]:
+            EX(self.state)
         
         
         # --------------------- ID stage ---------------------
-        ID(self.state)
+        if not self.state.ID["nop"]:
+            ID(self.state)
         
         
         # --------------------- IF stage ---------------------
-        IF(self.state)
+        if not self.state.IF["nop"]:
+            IF(self.state,self.ext_imem)
+        
+        
         
         self.halted = True
         if self.state.IF["nop"] and self.state.ID["nop"] and self.state.EX["nop"] and self.state.MEM["nop"] and self.state.WB["nop"]:
@@ -193,19 +200,21 @@ if __name__ == "__main__":
     dmem_fs = DataMem("FS", ioDir)
 
     
-    ssCore = SingleStageCore(ioDir, imem, dmem_ss)
+    # ssCore = SingleStageCore(ioDir, imem, dmem_ss)
     fsCore = FiveStageCore(ioDir, imem, dmem_fs)
 
     while(True):
-        if not ssCore.halted:
-            ssCore.step()
+        # if not ssCore.halted:
+        #     ssCore.step()
         
         if not fsCore.halted:
             fsCore.step()
 
-        if ssCore.halted and fsCore.halted:
+        if fsCore.halted:
             break
+        # if ssCore.halted and fsCore.halted:
+        #     break
     
     # dump SS and FS data mem.
-    dmem_ss.outputDataMem()
+    # dmem_ss.outputDataMem()
     dmem_fs.outputDataMem()

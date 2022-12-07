@@ -1,4 +1,4 @@
-from conversion import *
+from conversion import binaryToDecimal
 
 def PerformOperation(dInst, register,dataMem,take_Branch,PC):
     print(dInst)
@@ -83,6 +83,8 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
         result = data1 & imm
         register.writeRF(rd, result)
     
+    #Load-type --------------------------------------------------------------------
+    
     elif(dInst['type'] == 'lw'):
         rs1 = binaryToDecimal(dInst['rs1'])
         imm = binaryToDecimal(dInst['imm'])
@@ -92,6 +94,8 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
         result = dataMem.readDataMem(address)
         register.writeRF(rd, result)
     
+    #Store-type --------------------------------------------------------------------
+    
     elif(dInst['type'] == 'sw'):
         rs1 = binaryToDecimal(dInst['rs1'])
         imm = binaryToDecimal(dInst['imm'])
@@ -100,6 +104,8 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
         address = register.readRF(rs1)
         address = address + imm
         dataMem.writeDataMem(address,data)
+    
+    #Branch-type --------------------------------------------------------------------
 
     elif(dInst['type'] == 'beq'):
         rs1 = binaryToDecimal(dInst['rs1'])
@@ -134,6 +140,15 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
         if result!=0:
             take_Branch = True
             PC.IF["PC"] += imm
+    
+    #JAL-type --------------------------------------------------------------------
+    
+    elif(dInst['type'] == 'jal'):
+        imm = binaryToDecimal(dInst['imm'])
+        rd = binaryToDecimal(dInst['rd'])
+        register.writeRF(rd, PC.IF["PC"]+4)
+        take_Branch = True
+        PC.IF["PC"] += imm << 1
     
     if not take_Branch:
         PC.IF["PC"] += 4
