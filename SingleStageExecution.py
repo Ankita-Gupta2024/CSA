@@ -1,7 +1,7 @@
-from conversion import binaryToDecimal
+from conversion import *
 
 def PerformOperation(dInst, register,dataMem,take_Branch,PC):
-    print(dInst)
+    
     #R-type----------------------------------------------------------------------
 
     if(dInst['type'] == 'add'):
@@ -53,7 +53,7 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
 
     elif(dInst['type'] == 'addi'):
         rs1 = binaryToDecimal(dInst['rs1'])
-        imm = binaryToDecimal(dInst['imm'])
+        imm = twosCompliment(dInst['imm'])
         rd = binaryToDecimal(dInst['rd'])
         data1 = register.readRF(rs1)
         result = data1 + imm
@@ -61,7 +61,7 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
     
     elif(dInst['type'] == 'xori'):
         rs1 = binaryToDecimal(dInst['rs1'])
-        imm = binaryToDecimal(dInst['imm'])
+        imm = twosCompliment(dInst['imm'])
         rd = binaryToDecimal(dInst['rd'])
         data1 = register.readRF(rs1)
         result = data1 ^ imm
@@ -69,7 +69,7 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
 
     elif(dInst['type'] == 'ori'):
         rs1 = binaryToDecimal(dInst['rs1'])
-        imm = binaryToDecimal(dInst['imm'])
+        imm = twosCompliment(dInst['imm'])
         rd = binaryToDecimal(dInst['rd'])
         data1 = register.readRF(rs1)
         result = data1 | imm
@@ -77,7 +77,7 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
     
     elif(dInst['type'] == 'andi'):
         rs1 = binaryToDecimal(dInst['rs1'])
-        imm = binaryToDecimal(dInst['imm'])
+        imm = twosCompliment(dInst['imm'])
         rd = binaryToDecimal(dInst['rd'])
         data1 = register.readRF(rs1)
         result = data1 & imm
@@ -87,7 +87,7 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
     
     elif(dInst['type'] == 'lw'):
         rs1 = binaryToDecimal(dInst['rs1'])
-        imm = binaryToDecimal(dInst['imm'])
+        imm = twosCompliment(dInst['imm'])
         rd = binaryToDecimal(dInst['rd'])
         address = register.readRF(rs1)
         address = address + imm
@@ -98,7 +98,7 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
     
     elif(dInst['type'] == 'sw'):
         rs1 = binaryToDecimal(dInst['rs1'])
-        imm = binaryToDecimal(dInst['imm'])
+        imm = twosCompliment(dInst['imm'])
         rs2 = binaryToDecimal(dInst['rs2'])
         data = register.readRF(rs2)
         address = register.readRF(rs1)
@@ -109,18 +109,18 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
 
     elif(dInst['type'] == 'beq'):
         rs1 = binaryToDecimal(dInst['rs1'])
-        imm = binaryToDecimal(dInst['imm'])
+        imm = twosCompliment(dInst['imm'])
         rs2 = binaryToDecimal(dInst['rs2'])
         data1 = register.readRF(rs1)
         data2 = register.readRF(rs2)
-        print(data1,data2)
+        
         result = abs(data1-data2)
         if result==0:
             take_Branch = True
             PC.IF["PC"] += imm
     
     elif(dInst['type'] == 'jal'):
-        imm = binaryToDecimal(dInst['imm'])
+        imm = twosCompliment(dInst['imm'])
         rd = binaryToDecimal(dInst['rd'])
         register.writeRF(rd, PC.IF["PC"]+4)
         take_Branch = True
@@ -128,15 +128,11 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
     
     elif(dInst['type'] == 'bne'):
         rs1 = binaryToDecimal(dInst['rs1'])
-        imm = binaryToDecimal(dInst['imm'])
+        imm = twosCompliment(dInst['imm'])
         rs2 = binaryToDecimal(dInst['rs2'])
         data1 = register.readRF(rs1)
         data2 = register.readRF(rs2)
         result = abs(data1-data2)
-        print("imm = "+ str(imm))
-        print("purana PC is = "+ str(PC.IF["PC"]))
-        print(data1,data2)
-        print(result)
         if result!=0:
             take_Branch = True
             PC.IF["PC"] += imm
@@ -144,12 +140,16 @@ def PerformOperation(dInst, register,dataMem,take_Branch,PC):
     #JAL-type --------------------------------------------------------------------
     
     elif(dInst['type'] == 'jal'):
-        imm = binaryToDecimal(dInst['imm'])
+        imm = twosCompliment(dInst['imm'])
         rd = binaryToDecimal(dInst['rd'])
         register.writeRF(rd, PC.IF["PC"]+4)
         take_Branch = True
         PC.IF["PC"] += imm << 1
     
+    elif(dInst['type'] == 'HALT'):
+        take_Branch = True
+        PC.IF["nop"] = True
+
     if not take_Branch:
         PC.IF["PC"] += 4
 

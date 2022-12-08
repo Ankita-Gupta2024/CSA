@@ -1,9 +1,8 @@
 from conversion import *
 
-def FS_decode(state):
+def FS_decode(state,register):
     reset(state)
     instruction = state.ID["Instr"]
-    print(instruction)
 
     #R-type---------------------------------------------------------------------------------
 
@@ -14,6 +13,7 @@ def FS_decode(state):
 
         rs1 = binaryToDecimal(state.EX["Rs"])
         rs2 = binaryToDecimal(state.EX["Rt"])
+        state.EX["Wrt_reg_addr"] = binaryToDecimal(state.EX["Wrt_reg_addr"])
 
         if detectHazard(state, rs1) != 0:
             state.EX["Read_data1"] = detectHazard(state, rs1)
@@ -24,8 +24,10 @@ def FS_decode(state):
             state.EX["Read_data2"] = detectHazard(state, rs2)
         else:
             state.EX["Read_data2"] = register.readRF(rs2)
+        
 
         state.EX["wrt_enable"] = 1
+        state.EX["is_I_type"] = False
 
         if instruction[-15:-12] == "000" and instruction[-32:-25] == "0000000":
             # add func
@@ -52,10 +54,11 @@ def FS_decode(state):
 
     elif instruction[-7:] == "0010011":  # I-type
         state.EX["Rs"] = instruction[-20:-15]
-        state.EX["imm"] = instruction[-32:-20]
+        state.EX["Imm"] = instruction[-32:-20]
         state.EX["Wrt_reg_addr"] = instruction[-12:-7]
         
         rs1 = binaryToDecimal(state.EX["Rs"])
+        state.EX["Wrt_reg_addr"] = binaryToDecimal(state.EX["Wrt_reg_addr"])
 
         if detectHazard(state, rs1) != 0:
             state.EX["Read_data1"] = detectHazard(state, rs1)
@@ -85,10 +88,11 @@ def FS_decode(state):
     
     elif instruction[-7:] == "0000011":  
         state.EX["Rs"] = instruction[-20:-15]
-        state.EX["imm"] = instruction[-32:-20]
+        state.EX["Imm"] = instruction[-32:-20]
         state.EX["Wrt_reg_addr"] = instruction[-12:-7]
 
         rs1 = binaryToDecimal(state.EX["Rs"])   
+        state.EX["Wrt_reg_addr"] = binaryToDecimal(state.EX["Wrt_reg_addr"])
 
         if detectHazard(state, rs1) != 0:
             state.EX["Read_data1"] = detectHazard(state, rs1)
@@ -99,12 +103,12 @@ def FS_decode(state):
         state.EX["wrt_enable"] = 1
         state.EX["is_I_type"] = True
         state.EX["alu_op"] = "lw"
-
+        
     #Store-type ---------------------------------------------------------------------------------------
 
     elif instruction[-7:] == "0100011": 
         state.EX["Rs"] = instruction[-20:-15]
-        state.EX["imm"] = "".join((instruction[-32:-25], instruction[-12:-7]))
+        state.EX["Imm"] = "".join((instruction[-32:-25], instruction[-12:-7]))
         state.EX["Rt"] = instruction[-25:-20]
 
         rs1 = binaryToDecimal(state.EX["Rs"])
@@ -129,7 +133,7 @@ def FS_decode(state):
     elif instruction[-7:] == "1100011":
 
         state.EX["Rs"] = instruction[-20:-15]
-        state.EX["imm"] = "".join(
+        state.EX["Imm"] = "".join(
             (
                 instruction[-32],
                 instruction[-8],
@@ -166,13 +170,15 @@ def FS_decode(state):
     #JAL-type ---------------------------------------------------------------------------------------------------------
     
     elif instruction[-7:] == "1101111":  
-        state.EX["imm"] = "".join((instruction[-32], instruction[-20:-12], instruction[-21],instruction[-31:-21] ))
+        state.EX["Imm"] = "".join((instruction[-32], instruction[-20:-12], instruction[-21],instruction[-31:-21] ))
         state.EX["Wrt_reg_addr"] = instruction[-12:-7]
+        state.EX["Wrt_reg_addr"] = binaryToDecimal(state.EX["Wrt_reg_addr"])
         state.EX["wrt_enable"] = 1
         state.EX["alu_op"] = "jal"
     
     else:
-        return None
+        state.IF["nop"] = True
 
-    if state.EX["is_I_type"] and state.EX["imm"][0] == "1":
-        state.EX["imm"] = twosCompliment(state.EX["imm"])
+    if state.EX["is_I_type"]:
+        state.EX["Imm"] = twosCompliment(state.EX["Imm"])
+        

@@ -35,12 +35,14 @@ class DataMem(object):
         #read data memory
         #return 32 bit hex val
         data = ''.join(self.DMem[ReadAddress : ReadAddress+4])
-        return binaryToDecimal(data)
+        
+        return twosCompliment(data)
         
     def writeDataMem(self, Address, WriteData):
         # write data into byte addressable memory
         WriteData = decimalToBinary(WriteData)
         arr = [WriteData[i:i+8] for i in range(0, len(WriteData), 8)]
+        
         for i in range(len(arr)):
             self.DMem[Address+i] = arr[i]
                      
@@ -58,8 +60,8 @@ class RegisterFile(object):
         return self.Registers[Reg_addr]
     
     def writeRF(self, Reg_addr, Wrt_reg_data):
-        print(Wrt_reg_data)
-        self.Registers[Reg_addr] = (Wrt_reg_data) 
+        if Reg_addr !=0:
+            self.Registers[Reg_addr] = (Wrt_reg_data) 
          
     def outputRF(self, cycle):
         op = ["-"*70+"\n", "State of RF after executing cycle:" + str(cycle) + "\n"]
@@ -98,25 +100,23 @@ class SingleStageCore(Core):
 
     def step(self):
         # Your implementation
-        print("PC = "+str(self.state.IF["PC"]) )
+        if self.state.IF["nop"]:
+            self.halted = True
+
+        print(self.state.IF["PC"])
         instr = imem.readInstr(self.state.IF["PC"])
         decodedInst = decode(instr) #dict of all operands
         if decodedInst is None: 
             self.halted = True
         else: 
             PerformOperation(decodedInst,self.myRF,self.ext_dmem,self.takeBranch,self.state)
-
-        if self.state.IF["nop"]:
-            self.halted = True
             
         self.myRF.outputRF(self.cycle) # dump RF
-        self.printState(self.nextState, self.cycle) # print states after executing cycle 0, cycle 1, cycle 2 ... 
+        self.printState(self.state, self.cycle) # print states after executing cycle 0, cycle 1, cycle 2 ... 
             
-        self.state = self.nextState #The end of the cycle and updates the current state with the values calculated in this cycle
+        # self.state = self.nextState #The end of the cycle and updates the current state with the values calculated in this cycle
         self.cycle += 1
-        # if not self.takeBranch:
-        #     print("andar wala run hua")
-        #     self.state.IF["PC"] += 4
+
 
     def printState(self, state, cycle):
         printstate = ["-"*70+"\n", "State after executing cycle: " + str(cycle) + "\n"]
@@ -137,39 +137,57 @@ class FiveStageCore(Core):
         # Your implementation
         # --------------------- WB stage ---------------------
         if not self.state.WB["nop"]:
+            
             WB(self.state, self.myRF)
-        
-        
         
         # --------------------- MEM stage --------------------
         if not self.state.MEM["nop"]:
+            
             Mem(self.state, self.ext_dmem)
+            self.state.WB["nop"] = False
+        else:
+            self.state.WB["nop"] = True
         
         
         # --------------------- EX stage ---------------------
         if not self.state.EX["nop"]:
+            
             EX(self.state)
+            self.state.MEM["nop"] = False
+        else:
+            self.state.MEM["nop"] = True
         
         
         # --------------------- ID stage ---------------------
         if not self.state.ID["nop"]:
-            ID(self.state)
+            
+            self.state.EX["nop"] = False
+            ID(self.state, self.myRF)
+            
+        else:
+            self.state.EX["nop"] = True
         
         
         # --------------------- IF stage ---------------------
         if not self.state.IF["nop"]:
-            IF(self.state,self.ext_imem)
+            if not (self.state.EX["nop"] and not self.state.ID["nop"]):
+                
+                IF(self.state,self.ext_imem)
+            self.state.ID["nop"] = False
+        else:
+            self.state.ID["nop"] = True
+     
         
         
-        
-        self.halted = True
         if self.state.IF["nop"] and self.state.ID["nop"] and self.state.EX["nop"] and self.state.MEM["nop"] and self.state.WB["nop"]:
             self.halted = True
         
         self.myRF.outputRF(self.cycle) # dump RF
-        self.printState(self.nextState, self.cycle) # print states after executing cycle 0, cycle 1, cycle 2 ... 
+        self.printState(self.state, self.cycle) # print states after executing cycle 0, cycle 1, cycle 2 ... 
         
-        self.state = self.nextState #The end of the cycle and updates the current state with the values calculated in this cycle
+        # self.state = self.nextState #The end of the cycle and updates the current state with the values calculated in this cycle
+        # if self.cycle>20: 
+        #     self.halted=True
         self.cycle += 1
 
     def printState(self, state, cycle):
@@ -193,24 +211,26 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     ioDir = os.path.abspath(args.iodir)
-    print("IO Directory:", ioDir)
+    
 
     imem = InsMem("Imem", ioDir)
     dmem_ss = DataMem("SS", ioDir)
     dmem_fs = DataMem("FS", ioDir)
 
     
-    # ssCore = SingleStageCore(ioDir, imem, dmem_ss)
-    fsCore = FiveStageCore(ioDir, imem, dmem_fs)
+    ssCore = SingleStageCore(ioDir, imem, dmem_ss)
+    # fsCore = FiveStageCore(ioDir, imem, dmem_fs)
 
     while(True):
-        # if not ssCore.halted:
-        #     ssCore.step()
-        
-        if not fsCore.halted:
-            fsCore.step()
+        if not ssCore.halted:
+            ssCore.step()
+        # if not fsCore.halted:
+        #     fsCore.step()
 
-        if fsCore.halted:
+        # if fsCore.halted:
+        #     break
+
+        if ssCore.halted:
             break
         # if ssCore.halted and fsCore.halted:
         #     break

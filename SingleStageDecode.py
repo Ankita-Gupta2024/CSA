@@ -92,14 +92,14 @@ def decode(instruction):
         rd = instruction[-12:-7]
         decodedInst["type"] = "jal"
     
-    else:
-        return None
+    elif instruction[-7:] == "1111111":
+        decodedInst["type"] = "HALT"
 
     decodedInst["rs1"] = rs1
     decodedInst["rs2"] = rs2
     decodedInst["rd"] = rd
-    if imm is not None and imm[0] == "1":
-        imm = decimalToBinary(twosCompliment(imm)) 
     decodedInst["imm"] = imm
+
+    print(decodedInst)
 
     return decodedInst

@@ -4,9 +4,8 @@ def IF(state, imem):
     state.ID["Instr"] = imem.readInstr(state.IF["PC"])
     state.IF["PC"] += 4
 
-def ID(state):
-    print("decode run hua")
-    FS_decode(state)
+def ID(state, register):
+    FS_decode(state,register)
 
 def EX(state):
     state.MEM["wrt_enable"]=state.EX["wrt_enable"]
@@ -19,13 +18,14 @@ def EX(state):
     #R-type----------------------------------------------------------------------
 
     if (state.EX["alu_op"]=='add'):
-        state.MEM["ALUresult"]=state.EX["Read_data1"] + state.EX["Read_data2"]
+        state.MEM["ALUresult"]=(state.EX["Read_data1"]) + (state.EX["Read_data2"])
 
     if (state.EX["alu_op"]=='sub'):
         state.MEM["ALUresult"]=state.EX["Read_data1"] - state.EX["Read_data2"]
 
     if (state.EX["alu_op"]=='xor'):
         state.MEM["ALUresult"]=state.EX["Read_data1"] ^ state.EX["Read_data2"]
+        # print("xor result", state.EX["Read_data1"], state.EX["Read_data2"] )
 
     if (state.EX["alu_op"]=='or'):
         state.MEM["ALUresult"]=state.EX["Read_data1"] | state.EX["Read_data2"]
@@ -50,12 +50,14 @@ def EX(state):
     #Load --------------------------------------------------------------------
 
     if (state.EX["alu_op"]=='lw'):
-        state.MEM["ALUresult"]=state.EX["Read_data1"] + state.EX["imm"]
+        state.MEM["ALUresult"]=state.EX["Read_data1"] + state.EX["Imm"]
+        # print("decode", state.EX)
+        # print("alures",state.MEM["ALUresult"])
 
     #Store --------------------------------------------------------------------
 
     if (state.EX["alu_op"]=='sw'):
-        state.MEM["ALUresult"]=state.EX["Read_data1"] + state.EX["imm"] 
+        state.MEM["ALUresult"]=state.EX["Read_data1"] + state.EX["Imm"] 
         state.MEM["Store_data"]=state.EX["Read_data2"] 
 
     #B-type --------------------------------------------------------------------
@@ -89,24 +91,29 @@ def Mem(state,dataMem):
     state.WB["Rt"] = state.MEM["Rt"]
     state.WB["Wrt_reg_addr"] = state.MEM["Wrt_reg_addr"]
     state.WB["wrt_enable"] = state.MEM["wrt_enable"]
-
+    
     if(state.MEM["wrt_mem"]==1):
         # writing back to datamem with store
         dataMem.writeDataMem(state.MEM["ALUresult"] , state.MEM["Store_data"])
         
-    if(state.MEM["rd_mem"]==1):
+    elif(state.MEM["rd_mem"]==1):
         # reading from register with load
         state.WB["Wrt_data"] = dataMem.readDataMem(state.MEM["ALUresult"])
+        # print("write back",state.WB["Wrt_data"])
         
-    if(state.MEM["wrt_mem"]==0 & state.MEM["rd_mem"]==0):
+    elif(state.MEM["wrt_mem"]==0 & state.MEM["rd_mem"]==0):
         # any other branch/R-type instruction does not require memory
         state.WB["Wrt_data"] = state.MEM["ALUresult"]
 
     #HALT --------------------------------------------------------------------
 
     else:
-        None 
+        pass
+
+    
+    
 
 def WB(state, register):
     if (state.WB["wrt_enable"]==1):
         register.writeRF(state.WB["Wrt_reg_addr"], state.WB["Wrt_data"])
+
