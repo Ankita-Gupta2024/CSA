@@ -1,10 +1,16 @@
 from FiveStageDecode import FS_decode
 
 def IF(state, imem):
-    state.ID["Instr"] = imem.readInstr(state.IF["PC"])
-    state.IF["PC"] += 4
+    instruction = imem.readInstr(state.IF["PC"])
+    if instruction == "1"*32:
+        state.IF["nop"] = True
+        state.ID["nop"] = True
+    else:
+        state.ID["Instr"] = instruction
+        state.IF["PC"] += 4
 
 def ID(state, register):
+    state.ID["is_hazard"] = False
     FS_decode(state,register)
 
 def EX(state):
@@ -62,20 +68,21 @@ def EX(state):
 
     #B-type --------------------------------------------------------------------
 
-    if (state.EX["alu_op"]=='beq'):
-        result=abs(state.EX["Read_data1"] - state.EX["Read_data2"])
-        if result==0:
-            state.IF["PC"]+= state.EX["Imm"]
+    # if (state.EX["alu_op"]=='beq'):
+    #     result=abs(state.EX["Read_data1"] - state.EX["Read_data2"])
+    #     if result==0:
+    #         state.IF["PC"]+= state.EX["Imm"]
 
-    if (state.EX["alu_op"]=='bne'):
-        result=abs(state.EX["Read_data1"] - state.EX["Read_data2"])  
-        if result!=0:
-            state.IF["PC"]+= state.EX["Imm"]
+    # if (state.EX["alu_op"]=='bne'):
+    #     result=abs(state.EX["Read_data1"] - state.EX["Read_data2"])  
+    #     if result!=0:
+    #         state.IF["PC"]+= state.EX["Imm"]
 
     #JAL --------------------------------------------------------------------
 
     if (state.EX["alu_op"]=='jal'): 
        state.MEM["Wrt_reg_addr"]=state.EX["Wrt_reg_addr"]
+       state.MEM["ALUresult"] = state.EX["Read_data1"] + state.EX["Read_data2"]
         # state.EX["PC"]+= state.EX["Imm"]
 
     # elif not take_Branch:

@@ -61,11 +61,11 @@ class RegisterFile(object):
     
     def writeRF(self, Reg_addr, Wrt_reg_data):
         if Reg_addr !=0:
-            self.Registers[Reg_addr] = (Wrt_reg_data) 
+            self.Registers[Reg_addr] = Wrt_reg_data
          
     def outputRF(self, cycle):
         op = ["-"*70+"\n", "State of RF after executing cycle:" + str(cycle) + "\n"]
-        op.extend([str(val)+"\n" for val in self.Registers])
+        op.extend([decimalToBinary(val)+"\n" for val in self.Registers])
         if(cycle == 0): perm = "w"
         else: perm = "a"
         with open(self.outputFile, perm) as file:
@@ -74,7 +74,7 @@ class RegisterFile(object):
 class State(object):
     def __init__(self):
         self.IF = {"nop": False, "PC": 0}
-        self.ID = {"nop": True, "Instr": 0}
+        self.ID = {"nop": True, "Instr": 0, "is_hazard":False}
         self.EX = {"nop": True, "Read_data1": 0, "Read_data2": 0, "Imm": 0, "Rs": 0, "Rt": 0, "Wrt_reg_addr": 0, "is_I_type": False, "rd_mem": 0, 
                    "wrt_mem": 0, "alu_op": 0, "wrt_enable": 0}
         self.MEM = {"nop": True, "ALUresult": 0, "Store_data": 0, "Rs": 0, "Rt": 0, "Wrt_reg_addr": 0, "rd_mem": 0, 
@@ -103,7 +103,6 @@ class SingleStageCore(Core):
         if self.state.IF["nop"]:
             self.halted = True
 
-        print(self.state.IF["PC"])
         instr = imem.readInstr(self.state.IF["PC"])
         decodedInst = decode(instr) #dict of all operands
         if decodedInst is None: 
@@ -120,8 +119,8 @@ class SingleStageCore(Core):
 
     def printState(self, state, cycle):
         printstate = ["-"*70+"\n", "State after executing cycle: " + str(cycle) + "\n"]
-        printstate.append("IF.PC: " + str(state.IF["PC"]) + "\n")
-        printstate.append("IF.nop: " + str(state.IF["nop"]) + "\n")
+        printstate.append("IF.PC: " + str(decimalToBinary(state.IF["PC"])) + "\n")
+        printstate.append("IF.nop: " + str(decimalToBinary(state.IF["nop"])) + "\n")
         
         if(cycle == 0): perm = "w"
         else: perm = "a"
@@ -135,20 +134,30 @@ class FiveStageCore(Core):
 
     def step(self):
         # Your implementation
+        if self.state.IF["nop"] and self.state.ID["nop"] and self.state.EX["nop"] and self.state.MEM["nop"] and self.state.WB["nop"]:
+            self.halted = True
+
         print(self.state.WB["nop"],self.state.MEM["nop"], self.state.EX["nop"], self.state.ID["nop"],self.state.IF["nop"])
         # --------------------- WB stage ---------------------
         
         if not self.state.WB["nop"]:
             print("WB")
             WB(self.state, self.myRF)
+            if self.state.MEM["nop"]:
+                self.state.WB["nop"] = True
+        else:
+            if not self.state.MEM["nop"]:
+                self.state.WB["nop"] = False
         
         # --------------------- MEM stage --------------------
         if not self.state.MEM["nop"]:
             print("MEM")
             Mem(self.state, self.ext_dmem)
-            self.state.WB["nop"] = False
+            if self.state.EX["nop"]:
+                self.state.MEM["nop"] = True
         else:
-            self.state.WB["nop"] = True
+            if not self.state.EX["nop"]:
+                self.state.MEM["nop"] = False
         
         
         # --------------------- EX stage ---------------------
@@ -156,8 +165,11 @@ class FiveStageCore(Core):
             print("EX")
             EX(self.state)
             self.state.MEM["nop"] = False
+            if self.state.ID["nop"]:
+                self.state.EX["nop"] = True
         else:
-            self.state.MEM["nop"] = True
+            if not self.state.ID["nop"]:
+                self.state.EX["nop"] = False
         
         
         # --------------------- ID stage ---------------------
@@ -165,24 +177,22 @@ class FiveStageCore(Core):
             print("ID")
             self.state.EX["nop"] = False
             ID(self.state, self.myRF)
-            
+            if self.state.IF["nop"]:
+                self.state.ID["nop"] = True
         else:
-            self.state.EX["nop"] = True
+            if not self.state.IF["nop"]:
+                self.state.ID["nop"] = False
         
         
         # --------------------- IF stage ---------------------
         if not self.state.IF["nop"]:
-            if not (self.state.EX["nop"] and not self.state.ID["nop"]):
+            if self.state.ID["nop"] or (self.state.EX["nop"] and self.state.ID["is_hazard"]):
+                pass
+            else:
                 print("IF")
                 IF(self.state,self.ext_imem)
-            self.state.ID["nop"] = False
-        else:
-            self.state.ID["nop"] = True
-     
-        
-        
-        if self.state.IF["nop"] and self.state.ID["nop"] and self.state.EX["nop"] and self.state.MEM["nop"] and self.state.WB["nop"]:
-            self.halted = True
+                if not self.state.IF["nop"]: 
+                    self.state.ID["nop"] = False
         
         self.myRF.outputRF(self.cycle) # dump RF
         self.printState(self.state, self.cycle) # print states after executing cycle 0, cycle 1, cycle 2 ... 
@@ -220,23 +230,23 @@ if __name__ == "__main__":
     dmem_fs = DataMem("FS", ioDir)
 
     
-    ssCore = SingleStageCore(ioDir, imem, dmem_ss)
-    # fsCore = FiveStageCore(ioDir, imem, dmem_fs)
+    # ssCore = SingleStageCore(ioDir, imem, dmem_ss)
+    fsCore = FiveStageCore(ioDir, imem, dmem_fs)
 
     while(True):
-        if not ssCore.halted:
-            ssCore.step()
-        # if not fsCore.halted:
-        #     fsCore.step()
+        # if not ssCore.halted:
+        #     ssCore.step()
+        if not fsCore.halted:
+            fsCore.step()
 
-        # if fsCore.halted:
-        #     break
-
-        if ssCore.halted:
+        if fsCore.halted:
             break
+
+        # if ssCore.halted:
+        #     break
         # if ssCore.halted and fsCore.halted:
         #     break
     
     # dump SS and FS data mem.
-    dmem_ss.outputDataMem()
-    # dmem_fs.outputDataMem()
+    # dmem_ss.outputDataMem()
+    dmem_fs.outputDataMem()

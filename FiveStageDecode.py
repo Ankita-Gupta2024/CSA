@@ -15,15 +15,25 @@ def FS_decode(state,register):
         rs2 = binaryToDecimal(state.EX["Rt"])
         state.EX["Wrt_reg_addr"] = binaryToDecimal(state.EX["Wrt_reg_addr"])
 
-        if detectHazard(state, rs1) != 0:
-            state.EX["Read_data1"] = detectHazard(state, rs1)
+        hazard_rs1 = detectHazard(state, rs1)
+        hazard_rs2 = detectHazard(state, rs2)
+
+        if hazard_rs1 == 3 or hazard_rs2 ==3:
+            return 
+
+        if hazard_rs1 == 1:
+            state.EX["Read_data1"] = state.MEM["ALUresult"]
+        elif hazard_rs1 == 2:
+            state.EX["Read_data1"] = state.WB["Wrt_data"]
         else:
             state.EX["Read_data1"] = register.readRF(rs1)
-        
-        if detectHazard(state, rs2) != 0:
-            state.EX["Read_data2"] = detectHazard(state, rs2)
+
+        if hazard_rs2 == 1:
+            state.EX["Read_data2"] = state.MEM["ALUresult"]
+        elif hazard_rs2 == 2:
+            state.EX["Read_data2"] = state.WB["Wrt_data"]
         else:
-            state.EX["Read_data2"] = register.readRF(rs2)
+            state.EX["Read_data2"] = register.readRF(rs2)  
         
 
         state.EX["wrt_enable"] = 1
@@ -60,8 +70,15 @@ def FS_decode(state,register):
         rs1 = binaryToDecimal(state.EX["Rs"])
         state.EX["Wrt_reg_addr"] = binaryToDecimal(state.EX["Wrt_reg_addr"])
 
-        if detectHazard(state, rs1) != 0:
-            state.EX["Read_data1"] = detectHazard(state, rs1)
+        hazard_rs1 = detectHazard(state, rs1)
+        
+        if hazard_rs1 == 3:
+            return 
+
+        if hazard_rs1 == 1:
+            state.EX["Read_data1"] = state.MEM["ALUresult"]
+        elif hazard_rs1 == 2:
+            state.EX["Read_data1"] = state.WB["Wrt_data"]
         else:
             state.EX["Read_data1"] = register.readRF(rs1)
 
@@ -94,8 +111,15 @@ def FS_decode(state,register):
         rs1 = binaryToDecimal(state.EX["Rs"])   
         state.EX["Wrt_reg_addr"] = binaryToDecimal(state.EX["Wrt_reg_addr"])
 
-        if detectHazard(state, rs1) != 0:
-            state.EX["Read_data1"] = detectHazard(state, rs1)
+        hazard_rs1 = detectHazard(state, rs1)
+        
+        if hazard_rs1 == 3:
+            return 
+
+        if hazard_rs1 == 1:
+            state.EX["Read_data1"] = state.MEM["ALUresult"]
+        elif hazard_rs1 == 2:
+            state.EX["Read_data1"] = state.WB["Wrt_data"]
         else:
             state.EX["Read_data1"] = register.readRF(rs1)
 
@@ -114,15 +138,25 @@ def FS_decode(state,register):
         rs1 = binaryToDecimal(state.EX["Rs"])
         rs2 = binaryToDecimal(state.EX["Rt"])
 
-        if detectHazard(state, rs1) != 0:
-            state.EX["Read_data1"] = detectHazard(state, rs1)
+        hazard_rs1 = detectHazard(state, rs1)
+        hazard_rs2 = detectHazard(state, rs2)
+        
+        if hazard_rs1 == 3 or hazard_rs2 ==3:
+            return 
+
+        if hazard_rs1 == 1:
+            state.EX["Read_data1"] = state.MEM["ALUresult"]
+        elif hazard_rs1 == 2:
+            state.EX["Read_data1"] = state.WB["Wrt_data"]
         else:
             state.EX["Read_data1"] = register.readRF(rs1)
-        
-        if detectHazard(state, rs2) != 0:
-            state.EX["Read_data2"] = detectHazard(state, rs2)
+
+        if hazard_rs2 == 1:
+            state.EX["Read_data2"] = state.MEM["ALUresult"]
+        elif hazard_rs2 == 2:
+            state.EX["Read_data2"] = state.WB["Wrt_data"]
         else:
-            state.EX["Read_data2"] = register.readRF(rs2)
+            state.EX["Read_data2"] = register.readRF(rs2) 
 
         state.EX["is_I_type"] = True
         state.EX["wrt_mem"] = 1
@@ -147,17 +181,25 @@ def FS_decode(state,register):
         rs1 = binaryToDecimal(state.EX["Rs"])
         rs2 = binaryToDecimal(state.EX["Rt"])
 
-        if detectHazard(state, rs1) != 0:
-            state.EX["Read_data1"] = detectHazard(state, rs1)
+        hazard_rs1 = detectHazard(state, rs1)
+        hazard_rs2 = detectHazard(state, rs2)
+
+        if hazard_rs1 == 3 or hazard_rs2 ==3:
+            return 
+
+        if hazard_rs1 == 1:
+            state.EX["Read_data1"] = state.MEM["ALUresult"]
+        elif hazard_rs1 == 2:
+            state.EX["Read_data1"] = state.WB["Wrt_data"]
         else:
             state.EX["Read_data1"] = register.readRF(rs1)
-        
-        if detectHazard(state, rs2) != 0:
-            state.EX["Read_data2"] = detectHazard(state, rs2)
-        else:
-            state.EX["Read_data2"] = register.readRF(rs2)
 
-        state.EX["is_I_type"] = True
+        if hazard_rs2 == 1:
+            state.EX["Read_data2"] = state.MEM["ALUresult"]
+        elif hazard_rs2 == 2:
+            state.EX["Read_data2"] = state.WB["Wrt_data"]
+        else:
+            state.EX["Read_data2"] = register.readRF(rs2)        
 
         if instruction[-15:-12] == "000":
             # BEQ func
@@ -166,15 +208,26 @@ def FS_decode(state,register):
         elif instruction[-15:-12] == "001":
             # BNE
             state.EX["alu_op"] = "bne"
+        
+        result = abs(state.EX["Read_data1"] - state.EX["Read_data2"])
+        if bool(result) == (state.EX["alu_op"] == "bne"):
+            state.IF["PC"] += twosCompliment(state.EX["Imm"]) - 4
+            state.ID["nop"] = state.EX["nop"] = True
+        else: 
+            state.EX["nop"] = True
 
     #JAL-type ---------------------------------------------------------------------------------------------------------
     
     elif instruction[-7:] == "1101111":  
-        state.EX["Imm"] = "".join((instruction[-32], instruction[-20:-12], instruction[-21],instruction[-31:-21] ))
+        state.EX["Imm"] = "".join((instruction[-32], instruction[-20:-12], instruction[-21],instruction[-31:-21],"0" ))
         state.EX["Wrt_reg_addr"] = instruction[-12:-7]
         state.EX["Wrt_reg_addr"] = binaryToDecimal(state.EX["Wrt_reg_addr"])
+        state.EX["Read_data1"] = state.IF["PC"]
+        state.EX["Read_data2"] = 4
         state.EX["wrt_enable"] = 1
         state.EX["alu_op"] = "jal"
+        state.IF["PC"] += twosCompliment(state.EX["Imm"]) - 4
+        state.ID["nop"] = True
     
     else:
         state.IF["nop"] = True
