@@ -135,14 +135,16 @@ class FiveStageCore(Core):
 
     def step(self):
         # Your implementation
+        print(self.state.WB["nop"],self.state.MEM["nop"], self.state.EX["nop"], self.state.ID["nop"],self.state.IF["nop"])
         # --------------------- WB stage ---------------------
+        
         if not self.state.WB["nop"]:
-            
+            print("WB")
             WB(self.state, self.myRF)
         
         # --------------------- MEM stage --------------------
         if not self.state.MEM["nop"]:
-            
+            print("MEM")
             Mem(self.state, self.ext_dmem)
             self.state.WB["nop"] = False
         else:
@@ -151,7 +153,7 @@ class FiveStageCore(Core):
         
         # --------------------- EX stage ---------------------
         if not self.state.EX["nop"]:
-            
+            print("EX")
             EX(self.state)
             self.state.MEM["nop"] = False
         else:
@@ -160,7 +162,7 @@ class FiveStageCore(Core):
         
         # --------------------- ID stage ---------------------
         if not self.state.ID["nop"]:
-            
+            print("ID")
             self.state.EX["nop"] = False
             ID(self.state, self.myRF)
             
@@ -171,7 +173,7 @@ class FiveStageCore(Core):
         # --------------------- IF stage ---------------------
         if not self.state.IF["nop"]:
             if not (self.state.EX["nop"] and not self.state.ID["nop"]):
-                
+                print("IF")
                 IF(self.state,self.ext_imem)
             self.state.ID["nop"] = False
         else:
@@ -236,5 +238,5 @@ if __name__ == "__main__":
         #     break
     
     # dump SS and FS data mem.
-    # dmem_ss.outputDataMem()
-    dmem_fs.outputDataMem()
+    dmem_ss.outputDataMem()
+    # dmem_fs.outputDataMem()

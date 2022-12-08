@@ -106,3 +106,7 @@ IF.nop: False
 State after executing cycle: 26
 IF.PC: 28
 IF.nop: True
+----------------------------------------------------------------------
+State after executing cycle: 27
+IF.PC: 28
+IF.nop: True
