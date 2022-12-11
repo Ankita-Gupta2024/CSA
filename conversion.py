@@ -27,7 +27,7 @@ def reset(state):
     state.EX["Imm"] = 0
     state.EX["Rs"] = 0
     state.EX["Rt"] = 0
-    state.EX["Wrt_reg_addr"] = 0
+    state.EX["Wrt_reg_addr"] = -1
     state.EX["is_I_type"] = False
     state.EX["rd_mem"] = 0
     state.EX["wrt_mem"] = 0
@@ -36,7 +36,7 @@ def reset(state):
 
 def detectHazard(state, rs):
     
-    if rs == state.EX["Wrt_reg_addr"] and state.MEM["rd_mem"]==0:
+    if rs == state.MEM["Wrt_reg_addr"] and state.MEM["rd_mem"]==0:
         # EX to 1st (state.MEM["ALUresult"])
         return 1
     elif rs == state.WB["Wrt_reg_addr"] and state.WB["wrt_enable"]:

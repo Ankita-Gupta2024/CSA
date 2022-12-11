@@ -222,7 +222,7 @@ def FS_decode(state,register):
         state.EX["Imm"] = "".join((instruction[-32], instruction[-20:-12], instruction[-21],instruction[-31:-21],"0" ))
         state.EX["Wrt_reg_addr"] = instruction[-12:-7]
         state.EX["Wrt_reg_addr"] = binaryToDecimal(state.EX["Wrt_reg_addr"])
-        state.EX["Read_data1"] = state.IF["PC"]
+        state.EX["Read_data1"] = state.IF["PC"] - 4
         state.EX["Read_data2"] = 4
         state.EX["wrt_enable"] = 1
         state.EX["alu_op"] = "jal"
