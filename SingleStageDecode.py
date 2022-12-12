@@ -100,6 +100,6 @@ def decode(instruction):
     decodedInst["rd"] = rd
     decodedInst["imm"] = imm
 
-    print(decodedInst)
+    
 
     return decodedInst

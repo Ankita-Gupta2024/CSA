@@ -113,7 +113,7 @@ EX.Read_data2: 8
 EX.Imm: 1111111111100
 EX.Rs: 00010
 EX.Rt: 00001
-EX.Wrt_reg_addr: 0
+EX.Wrt_reg_addr: -1
 EX.is_I_type: False
 EX.rd_mem: 0
 EX.wrt_mem: 0
@@ -147,7 +147,7 @@ EX.Read_data2: 8
 EX.Imm: 1111111111100
 EX.Rs: 00010
 EX.Rt: 00001
-EX.Wrt_reg_addr: 0
+EX.Wrt_reg_addr: -1
 EX.is_I_type: False
 EX.rd_mem: 0
 EX.wrt_mem: 0
@@ -215,7 +215,7 @@ EX.Read_data2: 8
 EX.Imm: 1111111111100
 EX.Rs: 00010
 EX.Rt: 00001
-EX.Wrt_reg_addr: 0
+EX.Wrt_reg_addr: -1
 EX.is_I_type: False
 EX.rd_mem: 0
 EX.wrt_mem: 0
@@ -249,7 +249,7 @@ EX.Read_data2: 8
 EX.Imm: 1111111111100
 EX.Rs: 00010
 EX.Rt: 00001
-EX.Wrt_reg_addr: 0
+EX.Wrt_reg_addr: -1
 EX.is_I_type: False
 EX.rd_mem: 0
 EX.wrt_mem: 0
@@ -283,7 +283,7 @@ EX.Read_data2: 8
 EX.Imm: 1111111111100
 EX.Rs: 00010
 EX.Rt: 00001
-EX.Wrt_reg_addr: 0
+EX.Wrt_reg_addr: -1
 EX.is_I_type: False
 EX.rd_mem: 0
 EX.wrt_mem: 0
@@ -317,7 +317,7 @@ EX.Read_data2: 8
 EX.Imm: 1111111111100
 EX.Rs: 00010
 EX.Rt: 00001
-EX.Wrt_reg_addr: 0
+EX.Wrt_reg_addr: -1
 EX.is_I_type: False
 EX.rd_mem: 0
 EX.wrt_mem: 0

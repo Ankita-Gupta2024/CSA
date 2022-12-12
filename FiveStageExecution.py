@@ -31,7 +31,7 @@ def EX(state):
 
     if (state.EX["alu_op"]=='xor'):
         state.MEM["ALUresult"]=state.EX["Read_data1"] ^ state.EX["Read_data2"]
-        # print("xor result", state.EX["Read_data1"], state.EX["Read_data2"] )
+        # 
 
     if (state.EX["alu_op"]=='or'):
         state.MEM["ALUresult"]=state.EX["Read_data1"] | state.EX["Read_data2"]
@@ -57,8 +57,8 @@ def EX(state):
 
     if (state.EX["alu_op"]=='lw'):
         state.MEM["ALUresult"]=state.EX["Read_data1"] + state.EX["Imm"]
-        # print("decode", state.EX)
-        # print("alures",state.MEM["ALUresult"])
+        # 
+        # 
 
     #Store --------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ def Mem(state,dataMem):
     elif(state.MEM["rd_mem"]==1):
         # reading from register with load
         state.WB["Wrt_data"] = dataMem.readDataMem(state.MEM["ALUresult"])
-        # print("write back",state.WB["Wrt_data"])
+        # 
         
     elif(state.MEM["wrt_mem"]==0 & state.MEM["rd_mem"]==0):
         # any other branch/R-type instruction does not require memory

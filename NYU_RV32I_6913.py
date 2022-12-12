@@ -12,7 +12,7 @@ class InsMem(object):
     def __init__(self, name, ioDir):
         self.id = name
         
-        with open(ioDir + "\\imem.txt") as im:
+        with open(ioDir + os.sep + "imem.txt") as im:
             self.IMem = [data.replace("\n", "") for data in im.readlines()]
         
 
@@ -26,7 +26,7 @@ class DataMem(object):
     def __init__(self, name, ioDir):
         self.id = name
         self.ioDir = ioDir
-        with open(ioDir + "\\dmem.txt") as dm:
+        with open(ioDir + os.sep + "dmem.txt") as dm:
             self.DMem = [data.replace("\n", "") for data in dm.readlines()]
             self.DMem.extend(["00000000"]*(1000-len(self.DMem)))
         
@@ -47,7 +47,7 @@ class DataMem(object):
             self.DMem[Address+i] = arr[i]
                      
     def outputDataMem(self):
-        resPath = self.ioDir + "\\" + self.id + "_DMEMResult.txt"
+        resPath = self.ioDir + os.sep + self.id + "_DMEMResult.txt"
         with open(resPath, "w") as rp:
             rp.writelines([str(data) + "\n" for data in self.DMem])
 
@@ -95,8 +95,8 @@ class Core(object):
 
 class SingleStageCore(Core):
     def __init__(self, ioDir, imem, dmem):
-        super(SingleStageCore, self).__init__(ioDir + "\\SS_", imem, dmem)
-        self.opFilePath = ioDir + "\\StateResult_SS.txt"
+        super(SingleStageCore, self).__init__(ioDir + os.sep + "SS_", imem, dmem)
+        self.opFilePath = ioDir + os.sep + "StateResult_SS.txt"
 
     def step(self):
         # Your implementation
@@ -119,8 +119,8 @@ class SingleStageCore(Core):
 
     def printState(self, state, cycle):
         printstate = ["-"*70+"\n", "State after executing cycle: " + str(cycle) + "\n"]
-        printstate.append("IF.PC: " + str(decimalToBinary(state.IF["PC"])) + "\n")
-        printstate.append("IF.nop: " + str(decimalToBinary(state.IF["nop"])) + "\n")
+        printstate.append("IF.PC: " + str(state.IF["PC"]) + "\n")
+        printstate.append("IF.nop: " + str(state.IF["nop"]) + "\n")
         
         if(cycle == 0): perm = "w"
         else: perm = "a"
@@ -129,19 +129,19 @@ class SingleStageCore(Core):
 
 class FiveStageCore(Core):
     def __init__(self, ioDir, imem, dmem):
-        super(FiveStageCore, self).__init__(ioDir + "\\FS_", imem, dmem)
-        self.opFilePath = ioDir + "\\StateResult_FS.txt"
+        super(FiveStageCore, self).__init__(ioDir + os.sep + "FS_", imem, dmem)
+        self.opFilePath = ioDir + os.sep + "StateResult_FS.txt"
 
     def step(self):
         # Your implementation
         if self.state.IF["nop"] and self.state.ID["nop"] and self.state.EX["nop"] and self.state.MEM["nop"] and self.state.WB["nop"]:
             self.halted = True
 
-        print(self.state.WB["nop"],self.state.MEM["nop"], self.state.EX["nop"], self.state.ID["nop"],self.state.IF["nop"])
+        
         # --------------------- WB stage ---------------------
         
         if not self.state.WB["nop"]:
-            print("WB")
+            
             WB(self.state, self.myRF)
             if self.state.MEM["nop"]:
                 self.state.WB["nop"] = True
@@ -151,7 +151,7 @@ class FiveStageCore(Core):
         
         # --------------------- MEM stage --------------------
         if not self.state.MEM["nop"]:
-            print("MEM")
+            
             Mem(self.state, self.ext_dmem)
             if self.state.EX["nop"]:
                 self.state.MEM["nop"] = True
@@ -162,7 +162,7 @@ class FiveStageCore(Core):
         
         # --------------------- EX stage ---------------------
         if not self.state.EX["nop"]:
-            print("EX")
+            
             EX(self.state)
             self.state.MEM["nop"] = False
             if self.state.ID["nop"]:
@@ -174,7 +174,7 @@ class FiveStageCore(Core):
         
         # --------------------- ID stage ---------------------
         if not self.state.ID["nop"]:
-            print("ID")
+            
             self.state.EX["nop"] = False
             ID(self.state, self.myRF)
             if self.state.IF["nop"]:
@@ -189,7 +189,7 @@ class FiveStageCore(Core):
             if self.state.ID["nop"] or (self.state.EX["nop"] and self.state.ID["is_hazard"]):
                 pass
             else:
-                print("IF")
+                
                 IF(self.state,self.ext_imem)
                 if not self.state.IF["nop"]: 
                     self.state.ID["nop"] = False
@@ -215,6 +215,25 @@ class FiveStageCore(Core):
         with open(self.opFilePath, perm) as wf:
             wf.writelines(printstate)
 
+def printPerformanceMetrics(ioDir,CPI_SS, IPC_SS, cycles_SS,CPI_FS, IPC_FS, cycles_FS):
+
+    
+
+    opFilePath = ioDir + os.sep + "PerformanceMetrics_Result.txt"
+    printstate_SS = ["Single Stage Core Performance Metrics" + "-"*29+"\n"]
+    printstate_SS.append("Number of cycles taken: " + str(cycles_SS) + "\n")
+    printstate_SS.append("Cycles per instruction: " + str(CPI_SS) + "\n")
+    printstate_SS.append("Instructions per cycle: " + str(IPC_SS) + "\n\n")
+
+    printstate_FS = ["Five Stage Core Performance Metrics" + "-"*29+"\n"]
+    printstate_FS.append("Number of cycles taken: " + str(cycles_FS) + "\n")
+    printstate_FS.append("Cycles per instruction: " + str(CPI_FS) + "\n")
+    printstate_FS.append("Instructions per cycle: " + str(IPC_FS) + "\n")
+    
+    with open(opFilePath, 'w') as wf:
+        wf.writelines(printstate_SS)
+        wf.writelines(printstate_FS)
+
 if __name__ == "__main__":
      
     #parse arguments for input file location
@@ -230,23 +249,29 @@ if __name__ == "__main__":
     dmem_fs = DataMem("FS", ioDir)
 
     
-    # ssCore = SingleStageCore(ioDir, imem, dmem_ss)
+    ssCore = SingleStageCore(ioDir, imem, dmem_ss)
     fsCore = FiveStageCore(ioDir, imem, dmem_fs)
 
     while(True):
-        # if not ssCore.halted:
-        #     ssCore.step()
+        if not ssCore.halted:
+            ssCore.step()
+        if ssCore.halted:
+            break
+
+    while True:
         if not fsCore.halted:
             fsCore.step()
 
         if fsCore.halted:
             break
-
-        # if ssCore.halted:
-        #     break
-        # if ssCore.halted and fsCore.halted:
-        #     break
     
     # dump SS and FS data mem.
-    # dmem_ss.outputDataMem()
+    dmem_ss.outputDataMem()
     dmem_fs.outputDataMem()
+
+    IPC_SS = round((len(imem.IMem)/4) / ssCore.cycle,6)
+    CPI_SS = round(1/IPC_SS,5)
+
+    IPC_FS = round((len(imem.IMem)/4) / fsCore.cycle,6)
+    CPI_FS = round(1/IPC_FS,5)
+    printPerformanceMetrics(ioDir,CPI_SS,IPC_SS,ssCore.cycle,CPI_FS,IPC_FS,fsCore.cycle)
