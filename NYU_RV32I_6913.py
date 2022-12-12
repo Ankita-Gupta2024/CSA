@@ -269,9 +269,9 @@ if __name__ == "__main__":
     dmem_ss.outputDataMem()
     dmem_fs.outputDataMem()
 
-    IPC_SS = round((len(imem.IMem)/4) / ssCore.cycle,6)
+    IPC_SS = round((ssCore.cycle - 1) / ssCore.cycle,6)
     CPI_SS = round(1/IPC_SS,5)
 
-    IPC_FS = round((len(imem.IMem)/4) / fsCore.cycle,6)
+    IPC_FS = round((ssCore.cycle - 1) / fsCore.cycle,6)
     CPI_FS = round(1/IPC_FS,5)
     printPerformanceMetrics(ioDir,CPI_SS,IPC_SS,ssCore.cycle,CPI_FS,IPC_FS,fsCore.cycle)
